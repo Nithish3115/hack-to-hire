@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yumevox - Voice Synthesis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        .yumevox-font {
+            /* This is a placeholder, you would use a custom font for "Yumevox" here */
+            /* For now, we'll use a serif font to mimic the style */
+            font-family: serif; 
+        }
+        .input-file {
+            @apply flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-6 cursor-pointer hover:border-black transition-colors duration-300;
+        }
+        .slider-thumb-light::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #FFD700;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .slider-thumb-light::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: #FFD700;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        /* Navbar hover styles with yellow curved background */
+        .nav-link {
+            position: relative;
+            padding: 8px 16px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+        .nav-link:hover {
+            background-color: #FFD700;
+            color: #000000;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+        }
+        .nav-link:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #FFD700;
+            border-radius: 20px;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.3s ease;
+            z-index: -1;
+        }
+        .nav-link:hover:before {
+            opacity: 1;
+            transform: scale(1);
+        }
+    </style>
+</head>
+<body class="bg-white text-gray-900">
+
+    <nav class="sticky top-0 z-50 py-4 px-6 md:px-12 flex justify-between items-center w-full bg-white backdrop-blur-sm border-b border-gray-200">
+        <div class="rounded-full bg-yellow-400 p-1">
+                <img src="static/icons/silent-voice.png" alt="Yumevox Logo" class="h-10 w-10">
+            </div>
+        <div class="hidden md:flex items-center space-x-8 text-lg font-medium">
+            <a href="#about" class="nav-link hover:text-black transition-colors duration-300">About</a>
+            <a href="#explore" class="nav-link hover:text-black transition-colors duration-300">Explore</a>
+            <a href="#contact-section" class="nav-link hover:text-black transition-colors duration-300">Contact</a>
+        </div>
+        <a href="#" class="px-5 py-2 rounded-full text-sm font-semibold text-black bg-yellow-400 hover:bg-yellow-500 transition-colors duration-300">Login/Sign up</a>
+    </nav>
+    
+    <header class="text-center mt-20 mb-16 px-4">
+        <h1 class="text-6xl md:text-8xl font-black text-gray-900 yumevox-font tracking-tight">Yumevox</h1>
+        <p class="mt-4 text-xl md:text-2xl font-medium text-gray-600">Every voice deserves to live twice</p>
+        <!-- <a href="#voice-cloning-section" class="inline-block mt-8 px-8 py-3 bg-gray-900 text-white font-semibold rounded-full shadow-lg hover:bg-black transition-colors duration-300 transform hover:scale-105">
+            Download now
+        </a> -->
+    </header>
+
+    <div class="container mx-auto max-w-4xl p-4 md:p-8">
+        <div class="bg-white rounded-3xl p-6 md:p-10 shadow-lg border border-gray-200">
+            <header class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">Voice Synthesis</h2>
+                <p id="header-text-paragraph" class="text-gray-600">Clone and synthesize voices with high fidelity.</p>
+            </header>
+
+            <div class="flex justify-center space-x-4 mb-8">
+                <button id="tab-voice-cloning" class="tab-button px-6 py-2 rounded-full font-semibold transition-all duration-300 active text-white bg-yellow-400 hover:bg-yellow-500 text-black">
+                    Voice Cloning
+                </button>
+                <button id="tab-text-to-speech" class="tab-button px-6 py-2 rounded-full font-semibold transition-all duration-300 bg-gray-200 text-gray-700 hover:bg-gray-300">
+                    Text to Speech
+                </button>
+                <button id="tab-training" class="tab-button px-6 py-2 rounded-full font-semibold transition-all duration-300 bg-gray-200 text-gray-700 hover:bg-gray-300">
+                    Training
+                </button>
+            </div>
+
+            <div id="voice-cloning-section">
+                <form id="inference-form" class="space-y-6">
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <div>
+                            <label for="model-path" class="block text-sm font-medium text-gray-700 mb-2">.pth Upload</label>
+                            <div class="input-file">
+                                <svg class="mx-auto h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                <span class="mt-2 text-sm font-medium text-gray-900">Upload Model</span>
+                                <input id="model-path" name="model_file" type="file" class="hidden" accept=".pth" required>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="index-path" class="block text-sm font-medium text-gray-700 mb-2">.index Upload</label>
+                            <div class="input-file">
+                                <svg class="mx-auto h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                <span class="mt-2 text-sm font-medium text-gray-900">Upload Index</span>
+                                <input id="index-path" name="index_file" type="file" class="hidden" accept=".index" required>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="audio-file" class="block text-sm font-medium text-gray-700 mb-2">Reference Audio</label>
+                            <div class="input-file">
+                                <svg class="mx-auto h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                <span class="mt-2 text-sm font-medium text-gray-900">Upload Audio</span>
+                                <input id="audio-file" name="audio_file" type="file" class="hidden" accept=".wav" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-2xl p-6 border border-gray-200">
+                        <h2 class="text-xl font-bold mb-4 text-gray-800">Inference Parameters</h2>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="pitch" class="block text-sm font-medium text-gray-700 mb-1">Pitch Shift</label>
+                                <div class="flex items-center space-x-4">
+                                    <input type="range" id="pitch" name="pitch" min="-24" max="24" value="0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb-light">
+                                    <span id="pitch-value" class="text-gray-700 w-8 text-right font-medium">0</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="index-rate" class="block text-sm font-medium text-gray-700 mb-1">Index Rate</label>
+                                <div class="flex items-center space-x-4">
+                                    <input type="range" id="index-rate" name="index_rate" min="0" max="100" value="30" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb-light">
+                                    <span id="index-rate-value" class="text-gray-700 w-8 text-right font-medium">0.3</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="volume-envelope" class="block text-sm font-medium text-gray-700 mb-1">Volume Envelope</label>
+                                <div class="flex items-center space-x-4">
+                                    <input type="range" id="volume-envelope" name="volume_envelope" min="0" max="100" value="100" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb-light">
+                                    <span id="volume-envelope-value" class="text-gray-700 w-8 text-right font-medium">1.0</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="protect" class="block text-sm font-medium text-gray-700 mb-1">Protect</label>
+                                <div class="flex items-center space-x-4">
+                                    <input type="range" id="protect" name="protect" min="0" max="500" value="330" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb-light">
+                                    <span id="protect-value" class="text-gray-700 w-8 text-right font-medium">0.33</span>
+                                </div>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label for="f0-method" class="block text-sm font-medium text-gray-700 mb-1">F0 Method</label>
+                                <select id="f0-method" name="f0_method" required class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-yellow-500 focus:border-yellow-500 transition duration-300 bg-white text-gray-900">
+                                    <option value="rmvpe">rmvpe</option>
+                                    <option value="crepe">crepe</option>
+                                    <option value="crepe-tiny">crepe-tiny</option>
+                                    <option value="fcpe">fcpe</option>
+                                    <option value="swift">swift</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center">
+                        <button type="submit" id="submit-button" class="mt-4 px-12 py-3 bg-yellow-400 text-gray-900 font-semibold rounded-full shadow-lg hover:bg-yellow-500 transition-colors duration-300 transform hover:scale-105">
+                            Run Inference
+                        </button>
+                    </div>
+                </form>
+
+                <div id="loading-spinner" class="hidden mt-8 text-center">
+                    <svg class="animate-spin h-10 w-10 text-yellow-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p class="mt-2 text-yellow-600 font-medium">Processing your audio...</p>
+                </div>
+
+                <div id="results-container" class="hidden mt-8 text-center">
+                    <h2 class="text-2xl font-bold mb-4 text-gray-900">Inference Complete!</h2>
+                    <p class="text-gray-600 mb-4">Here is your converted audio.</p>
+                    <audio id="audio-player" controls class="w-full max-w-lg mx-auto mb-4 rounded-xl shadow-md bg-gray-100"></audio>
+                    <a id="download-link" href="#" download="converted_audio.wav" class="inline-block px-8 py-3 bg-green-500 text-white font-semibold rounded-full hover:bg-green-600 transition-colors duration-300">
+                        Download Audio
+                    </a>
+                </div>
+
+                <div id="error-message" class="hidden mt-8 text-center text-red-500 font-semibold">
+                    An error occurred. Please check your inputs and try again.
+                </div>
+            </div>
+
+            <div id="text-to-speech-section" class="hidden text-center p-8">
+                <p class="text-xl font-medium text-gray-500">
+                    <span class="text-4xl">⏳</span><br/> This feature is coming soon. Stay tuned!
+                </p>
+            </div>
+            <div id="training-section" class="hidden">
+                <!-- Training Sub-tabs -->
+                <div class="flex justify-center space-x-4 mb-8">
+                    <button id="tab-preprocess" class="training-tab-button px-6 py-2 rounded-full font-semibold transition-all duration-300 active text-white bg-yellow-400 hover:bg-yellow-500 text-black">
+                        Preprocess
+                    </button>
+                    <button id="tab-train" class="training-tab-button px-6 py-2 rounded-full font-semibold transition-all duration-300 bg-gray-200 text-gray-700 hover:bg-gray-300">
+                        Train
+                    </button>
+                </div>
+
+                <!-- Preprocess Section -->
+                <div id="preprocess-section" class="training-content">
+                    <form id="preprocess-form" class="space-y-6">
+                        <div class="text-center mb-6">
+                            <h3 class="text-2xl font-bold text-gray-900 mb-2">Data Preprocessing</h3>
+                            <p class="text-gray-600">Prepare your audio data for training</p>
+                        </div>
+                        
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="training-audio" class="block text-sm font-medium text-gray-700 mb-2">Training Audio Files</label>
+                                <div class="input-file">
+                                    <svg class="mx-auto h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                    <span class="mt-2 text-sm font-medium text-gray-900">Upload Audio Files</span>
+                                    <input id="training-audio" name="training_audio" type="file" class="hidden" accept=".wav,.mp3,.flac" multiple required>
+                                </div>
+                                <p class="mt-2 text-xs text-amber-600 bg-amber-50 p-2 rounded">
+                                    📝 <strong>Tip:</strong> Upload multiple audio files (10+ minutes total) of the same speaker for best results. Quality matters more than quantity!
+                                </p>
+                            </div>
+                            
+                            <div>
+                                <label for="model-name" class="block text-sm font-medium text-gray-700 mb-2">Model Name</label>
+                                <input type="text" id="model-name" name="model_name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent" placeholder="Enter model name" required>
+                            </div>
+                        </div>
+                        
+                        <div class="grid md:grid-cols-3 gap-6">
+                            <div>
+                                <label for="sample-rate" class="block text-sm font-medium text-gray-700 mb-2">Sample Rate</label>
+                                <select id="sample-rate" name="sample_rate" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent">
+                                    <option value="32000">32000 Hz</option>
+                                    <option value="40000" selected>40000 Hz</option>
+                                    <option value="48000">48000 Hz</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label for="cpu-cores" class="block text-sm font-medium text-gray-700 mb-2">CPU Cores</label>
+                                <input type="number" id="cpu-cores" name="cpu_cores" value="4" min="1" max="16" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent">
+                            </div>
+                            
+                            <div>
+                                <label for="f0-method-preprocess" class="block text-sm font-medium text-gray-700 mb-2">F0 Method</label>
+                                <select id="f0-method-preprocess" name="f0_method" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent">
+                                    <option value="rmvpe" selected>RMVPE</option>
+                                    <option value="crepe">CREPE</option>
+                                    <option value="fcpe">FCPE</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" id="noise-reduction" name="noise_reduction" class="rounded text-yellow-400 focus:ring-yellow-400">
+                                    <span class="text-sm font-medium text-gray-700">Enable Noise Reduction</span>
+                                </label>
+                            </div>
+                            
+                            <div>
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" id="process-effects" name="process_effects" class="rounded text-yellow-400 focus:ring-yellow-400">
+                                    <span class="text-sm font-medium text-gray-700">Apply Audio Effects</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-center">
+                            <button type="submit" id="start-preprocess-btn" class="px-8 py-3 bg-yellow-400 text-black font-semibold rounded-full hover:bg-yellow-500 transition-colors duration-300">
+                                Start Preprocessing
+                            </button>
+                        </div>
+                        
+                        <div id="preprocess-status" class="hidden mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                            <p class="text-blue-800 text-center">Processing audio files...</p>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Train Section -->
+                <div id="train-section" class="training-content hidden">
+                    <form id="train-form" class="space-y-6">
+                        <div class="text-center mb-6">
+                            <h3 class="text-2xl font-bold text-gray-900 mb-2">Model Training</h3>
+                            <p class="text-gray-600">Train your custom voice model</p>
+                        </div>
+                        
+                        <div>
+                            <label for="preprocessed-model" class="block text-sm font-medium text-gray-700 mb-2">Select Preprocessed Model</label>
+                            <select id="preprocessed-model" name="preprocessed_model" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent" required>
+                                <option value="">Select a preprocessed model...</option>
+                            </select>
+                        </div>
+                        
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="total-epochs" class="block text-sm font-medium text-gray-700 mb-2">Total Epochs</label>
+                                <input type="number" id="total-epochs" name="total_epochs" value="300" min="10" max="1000" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent">
+                            </div>
+                            
+                            <div>
+                                <label for="save-every-epoch" class="block text-sm font-medium text-gray-700 mb-2">Save Every Epoch</label>
+                                <input type="number" id="save-every-epoch" name="save_every_epoch" value="50" min="1" max="100" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent">
+                            </div>
+                        </div>
+                        
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="batch-size" class="block text-sm font-medium text-gray-700 mb-2">Batch Size</label>
+                                <select id="batch-size" name="batch_size" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent">
+                                    <option value="4">4</option>
+                                    <option value="8" selected>8</option>
+                                    <option value="16">16</option>
+                                    <option value="32">32</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label for="gpu-id" class="block text-sm font-medium text-gray-700 mb-2">GPU ID</label>
+                                <input type="number" id="gpu-id" name="gpu_id" value="0" min="0" max="7" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent">
+                            </div>
+                        </div>
+                        
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" id="overtraining-detector" name="overtraining_detector" class="rounded text-yellow-400 focus:ring-yellow-400" checked>
+                                    <span class="text-sm font-medium text-gray-700">Enable Overtraining Detection</span>
+                                </label>
+                            </div>
+                            
+                            <div>
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" id="save-only-latest" name="save_only_latest" class="rounded text-yellow-400 focus:ring-yellow-400">
+                                    <span class="text-sm font-medium text-gray-700">Save Only Latest</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-center">
+                            <button type="submit" id="start-training-btn" class="px-8 py-3 bg-yellow-400 text-black font-semibold rounded-full hover:bg-yellow-500 transition-colors duration-300">
+                                Start Training
+                            </button>
+                        </div>
+                        
+                        <div id="training-status" class="hidden mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                            <p class="text-blue-800 text-center">Training in progress...</p>
+                            <div class="mt-2 bg-gray-200 rounded-full h-2">
+                                <div id="training-progress" class="bg-yellow-400 h-2 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        
+                        <div id="training-complete" class="hidden mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                            <p class="text-green-800 text-center mb-4">Training completed successfully!</p>
+                            <div class="flex justify-center">
+                                <a id="download-model-btn" href="#" class="px-6 py-3 bg-green-500 text-white font-semibold rounded-full hover:bg-green-600 transition-colors duration-300" download>
+                                    Download Trained Model
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="contact-section" class="py-16 px-4 md:px-8 mt-20">
+        <div class="container mx-auto max-w-4xl p-6 md:p-10 bg-white rounded-3xl shadow-lg border border-gray-200 flex flex-col md:flex-row items-stretch justify-between">
+            <div class="md:w-1/2 p-6 md:pr-10">
+                <h2 class="text-4xl font-bold text-gray-900 mb-4">Get In Touch!</h2>
+                <p class="text-gray-600 text-lg mb-6">
+                    Have questions or ideas? We'd love to hear from you. Reach out anytime and let's connect.
+                </p>
+                <a href="#contact-form-section" class="inline-block px-8 py-3 rounded-full text-white font-semibold transition-colors duration-300 bg-yellow-400 hover:bg-yellow-500 text-black">
+                    Contact Us
+                </a>
+            </div>
+            <div class="md:w-1/2 p-6 md:pl-10 mt-8 md:mt-0 bg-gray-50 rounded-2xl border border-gray-200">
+                <h3 class="text-2xl font-bold text-gray-900 mb-6">Contact Us</h3>
+                <form class="space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="first-name" class="sr-only">First Name</label>
+                            <input type="text" id="first-name" name="firstName" placeholder="First Name" class="w-full px-4 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-yellow-500 focus:border-yellow-500 transition-colors">
+                        </div>
+                        <div>
+                            <label for="last-name" class="sr-only">Last Name</label>
+                            <input type="text" id="last-name" name="lastName" placeholder="Last Name" class="w-full px-4 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-yellow-500 focus:border-yellow-500 transition-colors">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="postal-code" class="sr-only">Postal Code</label>
+                            <input type="text" id="postal-code" name="postalCode" placeholder="Postal Code" class="w-full px-4 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-yellow-500 focus:border-yellow-500 transition-colors">
+                        </div>
+                        <div>
+                            <label for="email-address" class="sr-only">Email Address</label>
+                            <input type="email" id="email-address" name="email" placeholder="Email Address" class="w-full px-4 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-yellow-500 focus:border-yellow-500 transition-colors">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="message" class="sr-only">Message</label>
+                        <textarea id="message" name="message" rows="5" placeholder="Message" class="w-full px-4 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-yellow-500 focus:border-yellow-500 transition-colors"></textarea>
+                    </div>
+                    <div>
+                        <button type="submit" class="w-full px-8 py-3 bg-yellow-400 text-gray-900 font-semibold rounded-full hover:bg-yellow-500 transition-colors duration-300 transform hover:scale-105">
+                            Submit
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="fixed top-0 left-0 -z-10 w-full h-full pointer-events-none">
+        <svg class="absolute top-0 left-0 w-full h-full opacity-10" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <line x1="0" y1="0" x2="100" y2="100" stroke="#FFD700" stroke-width="0.5"/>
+            <line x1="100" y1="0" x2="0" y2="100" stroke="#FFD700" stroke-width="0.5"/>
+        </svg>
+    </div>
+    
+    <script>
+        const form = document.getElementById('inference-form');
+        const submitButton = document.getElementById('submit-button');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const resultsContainer = document.getElementById('results-container');
+        const audioPlayer = document.getElementById('audio-player');
+        const downloadLink = document.getElementById('download-link');
+        const errorMessage = document.getElementById('error-message');
+        
+        const tabVoiceCloning = document.getElementById('tab-voice-cloning');
+        const tabTextToSpeech = document.getElementById('tab-text-to-speech');
+        const tabTraining = document.getElementById('tab-training');
+        const voiceCloningSection = document.getElementById('voice-cloning-section');
+        const textToSpeechSection = document.getElementById('text-to-speech-section');
+        const trainingSection = document.getElementById('training-section');
+        const headerTextParagraph = document.getElementById('header-text-paragraph');
+
+        function switchTab(activeTab) {
+            [tabVoiceCloning, tabTextToSpeech, tabTraining].forEach(tab => {
+                tab.classList.remove('active', 'bg-yellow-400', 'text-black');
+                tab.classList.add('bg-gray-200', 'text-gray-700');
+            });
+            [voiceCloningSection, textToSpeechSection, trainingSection].forEach(section => {
+                section.classList.add('hidden');
+            });
+
+            activeTab.classList.add('active', 'bg-yellow-400', 'text-black');
+            activeTab.classList.remove('bg-gray-200', 'text-gray-700');
+
+            if (activeTab.id === 'tab-voice-cloning') {
+                voiceCloningSection.classList.remove('hidden');
+                headerTextParagraph.textContent = 'Clone and synthesize voices with high fidelity.';
+            } else if (activeTab.id === 'tab-text-to-speech') {
+                textToSpeechSection.classList.remove('hidden');
+                headerTextParagraph.textContent = 'Enter text to synthesize new speech.';
+            } else if (activeTab.id === 'tab-training') {
+                trainingSection.classList.remove('hidden');
+                headerTextParagraph.textContent = 'Train your own voice model from scratch.';
+                
+                // Load preprocessed models immediately when training tab is opened
+                loadPreprocessedModels();
+                
+                // Ensure the preprocess tab is selected by default when opening training
+                const tabPreprocess = document.getElementById('tab-preprocess');
+                const preprocessSection = document.getElementById('preprocess-section');
+                if (tabPreprocess && preprocessSection) {
+                    // Reset all training sub-tabs
+                    document.querySelectorAll('.training-tab-button').forEach(tab => {
+                        tab.classList.remove('active', 'text-white', 'bg-yellow-400', 'text-black');
+                        tab.classList.add('bg-gray-200', 'text-gray-700');
+                    });
+                    // Hide all training content sections
+                    document.querySelectorAll('.training-content').forEach(section => {
+                        section.classList.add('hidden');
+                    });
+                    // Activate preprocess tab by default
+                    tabPreprocess.classList.add('active', 'text-white', 'bg-yellow-400', 'text-black');
+                    tabPreprocess.classList.remove('bg-gray-200', 'text-gray-700');
+                    preprocessSection.classList.remove('hidden');
+                }
+            }
+        }
+
+        tabVoiceCloning.addEventListener('click', () => switchTab(tabVoiceCloning));
+        tabTextToSpeech.addEventListener('click', () => switchTab(tabTextToSpeech));
+        tabTraining.addEventListener('click', () => switchTab(tabTraining));
+
+        // Training sub-tab event listeners
+        const tabPreprocess = document.getElementById('tab-preprocess');
+        const tabTrain = document.getElementById('tab-train');
+        const preprocessSection = document.getElementById('preprocess-section');
+        const trainSection = document.getElementById('train-section');
+
+        if (tabPreprocess && tabTrain) {
+            tabPreprocess.addEventListener('click', () => {
+                // Reset all training sub-tabs
+                document.querySelectorAll('.training-tab-button').forEach(tab => {
+                    tab.classList.remove('active', 'text-white', 'bg-yellow-400', 'text-black');
+                    tab.classList.add('bg-gray-200', 'text-gray-700');
+                });
+                // Hide all training content sections
+                document.querySelectorAll('.training-content').forEach(section => {
+                    section.classList.add('hidden');
+                });
+                // Activate preprocess tab
+                tabPreprocess.classList.add('active', 'text-white', 'bg-yellow-400', 'text-black');
+                tabPreprocess.classList.remove('bg-gray-200', 'text-gray-700');
+                preprocessSection.classList.remove('hidden');
+            });
+
+            tabTrain.addEventListener('click', () => {
+                // Load preprocessed models when switching to train tab
+                loadPreprocessedModels();
+                
+                // Reset all training sub-tabs
+                document.querySelectorAll('.training-tab-button').forEach(tab => {
+                    tab.classList.remove('active', 'text-white', 'bg-yellow-400', 'text-black');
+                    tab.classList.add('bg-gray-200', 'text-gray-700');
+                });
+                // Hide all training content sections
+                document.querySelectorAll('.training-content').forEach(section => {
+                    section.classList.add('hidden');
+                });
+                // Activate train tab
+                tabTrain.classList.add('active', 'text-white', 'bg-yellow-400', 'text-black');
+                tabTrain.classList.remove('bg-gray-200', 'text-gray-700');
+                trainSection.classList.remove('hidden');
+            });
+        }
+
+        document.querySelectorAll('.input-file').forEach(uploadArea => {
+            const input = uploadArea.querySelector('input[type="file"]');
+            uploadArea.addEventListener('click', () => input.click());
+            input.addEventListener('change', () => {
+                if (input.files.length > 0) {
+                    const fileSpan = uploadArea.querySelector('span');
+                    if (input.multiple && input.files.length > 1) {
+                        fileSpan.textContent = `${input.files.length} files selected`;
+                    } else {
+                        const fileName = input.files[0].name;
+                        fileSpan.textContent = fileName;
+                    }
+                }
+            });
+        });
+
+        document.getElementById('pitch').addEventListener('input', (e) => {
+            document.getElementById('pitch-value').textContent = e.target.value;
+        });
+        document.getElementById('index-rate').addEventListener('input', (e) => {
+            document.getElementById('index-rate-value').textContent = (e.target.value / 100).toFixed(2);
+        });
+        document.getElementById('volume-envelope').addEventListener('input', (e) => {
+            document.getElementById('volume-envelope-value').textContent = (e.target.value / 100).toFixed(2);
+        });
+        document.getElementById('protect').addEventListener('input', (e) => {
+            document.getElementById('protect-value').textContent = (e.target.value / 1000).toFixed(3);
+        });
+
+        // Function to load preprocessed models
+        async function loadPreprocessedModels() {
+            const preprocessedModelSelect = document.getElementById('preprocessed-model');
+            try {
+                const response = await fetch('/get_preprocessed_models');
+                const data = await response.json();
+                
+                // Clear existing options
+                preprocessedModelSelect.innerHTML = '<option value="">Select a preprocessed model...</option>';
+                
+                if (data.success && data.models && data.models.length > 0) {
+                    data.models.forEach(model => {
+                        const option = document.createElement('option');
+                        option.value = model;
+                        option.textContent = model;
+                        preprocessedModelSelect.appendChild(option);
+                    });
+                    console.log(`Loaded ${data.models.length} preprocessed models`);
+                } else {
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.textContent = 'No preprocessed models found';
+                    option.disabled = true;
+                    preprocessedModelSelect.appendChild(option);
+                }
+            } catch (error) {
+                console.error('Error loading preprocessed models:', error);
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'Error loading models';
+                option.disabled = true;
+                preprocessedModelSelect.appendChild(option);
+            }
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            resultsContainer.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+            loadingSpinner.classList.remove('hidden');
+            submitButton.disabled = true;
+
+            const formData = new FormData(form);
+
+            formData.set('index_rate', (parseFloat(formData.get('index_rate')) / 100).toString());
+            formData.set('volume_envelope', (parseFloat(formData.get('volume_envelope')) / 100).toString());
+            formData.set('protect', (parseFloat(formData.get('protect')) / 1000).toString());
+            
+            try {
+                const response = await fetch('/run_inference', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error('Server returned an error: ' + errorText);
+                }
+                const json = await response.json();
+                if (!json.success || !json.audio_url) {
+                    throw new Error(json.message || 'No audio URL returned.');
+                }
+
+                const audioResp = await fetch(json.audio_url);
+                if (!audioResp.ok) {
+                    throw new Error('Failed to fetch audio file.');
+                }
+                const audioBlob = await audioResp.blob();
+                const audioUrl = URL.createObjectURL(audioBlob);
+
+                audioPlayer.src = audioUrl;
+                downloadLink.href = audioUrl;
+
+                loadingSpinner.classList.add('hidden');
+                resultsContainer.classList.remove('hidden');
+
+            } catch (error) {
+                console.error('Inference failed:', error);
+                errorMessage.textContent = 'Failed to process audio. Please check your inputs and try again.';
+                errorMessage.classList.remove('hidden');
+                loadingSpinner.classList.add('hidden');
+            } finally {
+                submitButton.disabled = false;
+            }
+        });
+
+        // Preprocessing form functionality
+        const preprocessForm = document.getElementById('preprocess-form');
+        const preprocessStatus = document.getElementById('preprocess-status');
+        const startPreprocessBtn = document.getElementById('start-preprocess-btn');
+        const preprocessedModelSelect = document.getElementById('preprocessed-model');
+
+        if (preprocessForm) {
+            preprocessForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                preprocessStatus.classList.remove('hidden');
+                startPreprocessBtn.disabled = true;
+                startPreprocessBtn.textContent = 'Processing...';
+
+                const formData = new FormData(preprocessForm);
+
+                try {
+                    const response = await fetch('/run_preprocess', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        preprocessStatus.innerHTML = `
+                            <div class="text-center">
+                                <p class="text-green-800 font-medium">${result.message}</p>
+                                <p class="text-sm text-gray-600 mt-2">Your model is now ready for training! Switch to the Train tab.</p>
+                                <button id="switch-to-train" class="mt-3 px-4 py-2 bg-yellow-400 text-black rounded-lg hover:bg-yellow-500 transition-colors">
+                                    Go to Training →
+                                </button>
+                            </div>
+                        `;
+                        
+                        // Add click handler for the switch button
+                        document.getElementById('switch-to-train').addEventListener('click', () => {
+                            console.log('Switch to train button clicked');
+                            
+                            // First switch to the training main tab
+                            const tabTraining = document.getElementById('tab-training');
+                            if (tabTraining) {
+                                switchTab(tabTraining);
+                                
+                                // Wait a moment then switch to the train sub-tab
+                                setTimeout(() => {
+                                    const tabTrain = document.getElementById('tab-train');
+                                    const trainSection = document.getElementById('train-section');
+                                    const preprocessSection = document.getElementById('preprocess-section');
+                                    
+                                    if (tabTrain && trainSection) {
+                                        // Reset all training sub-tabs
+                                        document.querySelectorAll('.training-tab-button').forEach(tab => {
+                                            tab.classList.remove('active', 'text-white', 'bg-yellow-400', 'text-black');
+                                            tab.classList.add('bg-gray-200', 'text-gray-700');
+                                        });
+                                        
+                                        // Hide all training content sections
+                                        document.querySelectorAll('.training-content').forEach(section => {
+                                            section.classList.add('hidden');
+                                        });
+                                        
+                                        // Activate train tab
+                                        tabTrain.classList.add('active', 'text-white', 'bg-yellow-400', 'text-black');
+                                        tabTrain.classList.remove('bg-gray-200', 'text-gray-700');
+                                        
+                                        // Show train section
+                                        trainSection.classList.remove('hidden');
+                                        
+                                        console.log('Switched to train tab');
+                                    }
+                                }, 200);
+                            }
+                        });
+                        
+                        // Update the preprocessed models dropdown
+                        updatePreprocessedModels();
+                    } else {
+                        throw new Error(result.message || 'Preprocessing failed');
+                    }
+                } catch (error) {
+                    console.error('Preprocessing failed:', error);
+                    preprocessStatus.innerHTML = `
+                        <p class="text-red-800 text-center">Preprocessing failed: ${error.message}</p>
+                    `;
+                } finally {
+                    startPreprocessBtn.disabled = false;
+                    startPreprocessBtn.textContent = 'Start Preprocessing';
+                }
+            });
+        }
+
+        // Training form functionality
+        const trainForm = document.getElementById('train-form');
+        const trainingStatus = document.getElementById('training-status');
+        const trainingComplete = document.getElementById('training-complete');
+        const startTrainingBtn = document.getElementById('start-training-btn');
+        const downloadModelBtn = document.getElementById('download-model-btn');
+        const trainingProgress = document.getElementById('training-progress');
+
+        if (trainForm) {
+            trainForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                trainingStatus.classList.remove('hidden');
+                trainingComplete.classList.add('hidden');
+                startTrainingBtn.disabled = true;
+                startTrainingBtn.textContent = 'Training...';
+
+                const formData = new FormData(trainForm);
+
+                try {
+                    const response = await fetch('/run_training', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        trainingStatus.classList.add('hidden');
+                        trainingComplete.classList.remove('hidden');
+                        
+                        downloadModelBtn.href = result.download_url;
+                        downloadModelBtn.download = result.filename;
+                    } else {
+                        throw new Error(result.message || 'Training failed');
+                    }
+                } catch (error) {
+                    console.error('Training failed:', error);
+                    trainingStatus.innerHTML = `
+                        <p class="text-red-800 text-center">Training failed: ${error.message}</p>
+                    `;
+                } finally {
+                    startTrainingBtn.disabled = false;
+                    startTrainingBtn.textContent = 'Start Training';
+                }
+            });
+        }
+
+        // Function to update preprocessed models dropdown
+        async function updatePreprocessedModels() {
+            try {
+                const response = await fetch('/get_preprocessed_models');
+                const result = await response.json();
+                
+                if (result.success && preprocessedModelSelect) {
+                    preprocessedModelSelect.innerHTML = '<option value="">Select a preprocessed model...</option>';
+                    
+                    if (result.models && result.models.length > 0) {
+                        result.models.forEach(model => {
+                            const option = document.createElement('option');
+                            option.value = model;
+                            option.textContent = model;
+                            preprocessedModelSelect.appendChild(option);
+                        });
+                        
+                        // Show model details if available
+                        if (result.models_detail) {
+                            console.log('Available preprocessed models:', result.models_detail);
+                            
+                            // Add info display below the dropdown
+                            const existingInfo = document.getElementById('models-info');
+                            if (existingInfo) existingInfo.remove();
+                            
+                            if (result.models_detail.length > 0) {
+                                const infoDiv = document.createElement('div');
+                                infoDiv.id = 'models-info';
+                                infoDiv.className = 'mt-4 p-4 bg-gray-50 rounded-lg';
+                                infoDiv.innerHTML = `
+                                    <h4 class="text-sm font-semibold text-gray-700 mb-2">Available Preprocessed Models:</h4>
+                                    <ul class="text-sm text-gray-600 space-y-1">
+                                        ${result.models_detail.map(model => 
+                                            `<li>• <strong>${model.name}</strong>: ${model.audio_count} audio files processed</li>`
+                                        ).join('')}
+                                    </ul>
+                                `;
+                                
+                                // Insert after the dropdown
+                                const preprocessModelDiv = preprocessedModelSelect.closest('div');
+                                preprocessModelDiv.parentNode.insertBefore(infoDiv, preprocessModelDiv.nextSibling);
+                            }
+                        }
+                    } else {
+                        // Show message when no models are available
+                        const option = document.createElement('option');
+                        option.value = '';
+                        option.textContent = 'No preprocessed models available - Please preprocess data first';
+                        option.disabled = true;
+                        preprocessedModelSelect.appendChild(option);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch preprocessed models:', error);
+            }
+        }
+
+        // Load preprocessed models on page load
+        updatePreprocessedModels();
+    </script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+myvenv/
+.installed.cfg
+*.egg
+MANIFEST
+
+
+# Virtual Environments
+myenv/
+# Machine Learning / RVC Specific
+
+
+weights/
+logs/
+model/
+uploads/
+datasets/
+
+runs/
+tensorboard/
+checkpoints/
+# rvc/models/predictors/fcpe.pt
+# --- RVC Model Filtering ---
+# 1. Ignore all HiFi-GAN models first
+rvc/models/pretraineds/hifi-gan/*.pth
+
+# 2. Allow ONLY the 40k models (The ones we need)
+!rvc/models/pretraineds/hifi-gan/f0G40k.pth
+!rvc/models/pretraineds/hifi-gan/f0D40k.pth
+
+# 3. Ignore other sample rates explicitly (just in case)
+*32k.pth
+*48k.pth
+
+# 4. Ignore the extra predictor
+rvc/models/predictors/fcpe.pt
+# Audio / Output Files
+*.wav
+rvc/models/
+*.mp3
+*.flac
+*.ogg
+*.m4a
+output/
+results/
+temp/
+tmp/
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS Generated
+.DS_Store
+Thumbs.db
